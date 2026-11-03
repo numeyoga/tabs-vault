@@ -71,3 +71,5 @@ Contrôles exécutés le 2026-11-03 :
 - **Build de production réussi** ; sortie chargeable dans `dist/`. Tests de logique et d’interface distincts de la validation native.
 
 La suite séparée `npm run test:e2e:extension` est fournie pour un environnement autorisant les extensions non empaquetées ; elle n’est pas déclarée réussie ici. Le blocage administrateur observé précédemment demeure une limite connue. La validation réelle Chrome, Edge, Brave et Opera est confiée à l’utilisateur, conformément à sa demande. Aucun résultat de la suite d’aperçu n’est présenté comme une preuve de fonctionnement des boutons, permissions ou Tab Islands natifs.
+
+Complément du 2026-11-03 — organisation rapide : **41 tests Vitest** et **13 parcours Playwright d’interface** réussis, aucun ignoré. Les nouveaux scénarios couvrent création/association atomique, bascule, persistance, cinq tags compactés, clavier, fermeture extérieure et erreur de stockage sans fausse association. Build réussi. La validation native reste distincte.

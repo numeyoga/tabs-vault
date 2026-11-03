@@ -120,3 +120,49 @@ test('F-07 — 5 000 liens, affichage borné et recherche sans perte de résulta
   expect(duration).toBeLessThan(300);
   await expect(library.link('Lien 4999')).toBeVisible(); await expect(page.getByRole('listitem')).toHaveCount(1);
 });
+
+test('B-20 — associations rapides, création et retrait sans fermer le panneau', async ({ page }) => {
+  const { OrganizerPage } = await import('./pages/OrganizerPage.js');
+  const library = new LibraryPage(page), organizer = new OrganizerPage(page);
+  // Étant donné un lien et un groupe existant.
+  await library.open(); await library.addLink('https://example.test/a', 'A'); await library.createGroup('Voyage');
+  // Quand je crée un tag et sélectionne un groupe depuis le bouton +.
+  await organizer.open(library, 'A'); await organizer.create('tag', 'urgent');
+  await expect(organizer.option('tag', 'urgent')).toHaveAttribute('aria-checked', 'true');
+  await organizer.toggle('group', 'Voyage');
+  await expect(organizer.panel).toBeVisible(); await expect(library.link('A')).toContainText('Voyage');
+  // Alors un second clic retire uniquement cette association.
+  await organizer.toggle('group', 'Voyage'); await expect(library.link('A')).not.toContainText('Voyage');
+  await organizer.create('group', 'Projet Atlas'); await organizer.close();
+  await library.reload(); await expect(library.link('A')).toContainText('Projet Atlas'); await expect(library.link('A')).toContainText('urgent');
+});
+test('B-21 — deux tags visibles, accès clavier à tous les tags et fermeture extérieure', async ({ page }) => {
+  const { OrganizerPage } = await import('./pages/OrganizerPage.js');
+  const library = new LibraryPage(page), organizer = new OrganizerPage(page);
+  await library.open(); await library.addLink('https://example.test/a', 'A');
+  await library.editLink('A', { tags: ['design', 'lecture', 'urgent', 'projet', 'inspiration'] });
+  await expect(page.getByRole('dialog')).toHaveCount(0);
+  const more = library.link('A').getByRole('button', { name: 'Afficher les 5 tags' });
+  await expect(more).toHaveText('+3');
+  await more.focus(); await more.press('Enter');
+  const tags = page.getByRole('dialog', { name: 'Tous les tags', exact: true });
+  await expect(tags).toContainText('inspiration'); await expect(tags).toContainText('design');
+  await tags.press('Escape'); await expect(more).toBeFocused();
+  await organizer.open(library, 'A'); await organizer.search('introuvable');
+  await page.getByRole('heading', { name: 'Tabs Vault', exact: true }).click();
+  await expect(organizer.panel).toHaveCount(0);
+});
+
+test('B-20 — échec de stockage sans fausse association', async ({ page }) => {
+  const { OrganizerPage } = await import('./pages/OrganizerPage.js');
+  const library = new LibraryPage(page), organizer = new OrganizerPage(page);
+  await library.open(); await library.addLink('https://example.test/a', 'A'); await library.createGroup('Voyage');
+  await organizer.open(library, 'A');
+  // Fixture technique : faire échouer la prochaine écriture, sans remplacer l’action utilisateur.
+  await page.evaluate(() => { Storage.prototype.setItem = () => { throw new DOMException('Quota exceeded', 'QuotaExceededError'); }; });
+  await organizer.option('group', 'Voyage').click();
+  await expect(organizer.panel.getByRole('alert')).toContainText('Stockage plein');
+  await expect(organizer.option('group', 'Voyage')).toHaveAttribute('aria-checked', 'false');
+  await organizer.close(); await library.reload();
+  await expect(library.link('A')).not.toContainText('Voyage');
+});

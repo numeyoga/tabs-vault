@@ -194,3 +194,34 @@ it('F-13 — demande aussi un choix si la réactivation recrée un groupe homony
   const restored = cmd(v, 'import', { text: JSON.stringify(incoming), choices });
   expect(restored.groups).toHaveLength(2); expect(restored.links[0].deletedAt).toBeNull();
 });
+
+describe('B-20 — organisation rapide atomique', () => {
+  it('crée et associe un tag, réutilise un tag équivalent et bascule sans perte', () => {
+    let v = organized(); const id = v.links[0].id;
+    v = cmd(v, 'associate', { id, kind: 'tag', name: 'lecture', assigned: true });
+    const tag = v.tags.find((t) => t.name === 'lecture');
+    v = cmd(v, 'associate', { id, kind: 'tag', name: 'LECTURE', assigned: true });
+    expect(v.tags).toHaveLength(2); expect(v.links[0].tagIds).toHaveLength(2);
+    v = cmd(v, 'associate', { id, kind: 'tag', associationId: tag.id, assigned: false });
+    expect(v.links[0].tagIds).toHaveLength(1); expect(v.tags).toHaveLength(2);
+    expect(v.groups).toHaveLength(2); expect(v.links[0].title).toBe('Personnalisé');
+  });
+  it('crée un groupe et ajoute/retire le lien en préservant les autres groupes et tags', () => {
+    let v = organized(); const id = v.links[0].id;
+    v = cmd(v, 'associate', { id, kind: 'group', name: 'Projet', assigned: true });
+    const g = v.groups.find((item) => item.name === 'Projet');
+    expect(g.linkIds).toEqual([id]);
+    v = cmd(v, 'associate', { id, kind: 'group', associationId: g.id, assigned: false });
+    expect(v.groups.find((item) => item.id === g.id).linkIds).toEqual([]);
+    expect(v.groups.slice(0, 2).every((item) => item.linkIds.includes(id))).toBe(true);
+    expect(v.links[0].tagIds).toHaveLength(1);
+  });
+  it('refuse une création invalide, un groupe homonyme implicite et un lien supprimé', () => {
+    const v = organized(), before = structuredClone(v), id = v.links[0].id;
+    expect(() => cmd(v, 'associate', { id, kind: 'group', name: '', assigned: true })).toThrow();
+    expect(() => cmd(v, 'associate', { id, kind: 'group', name: 'Voyage', assigned: true })).toThrow('existant');
+    expect(v).toEqual(before);
+    const trashed = cmd(v, 'trash', { ids: [id] });
+    expect(() => cmd(trashed, 'associate', { id, kind: 'tag', name: 'test', assigned: true })).toThrow('Réactivez');
+  });
+});

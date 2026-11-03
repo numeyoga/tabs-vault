@@ -201,6 +201,26 @@ Quand j’importe un fichier contenant la même URL active et confirme l’impor
 Alors A est réactivé sans doublon avec son organisation restaurée
 Et les tags importés complètent ses tags
 
+
+# B-20 — F-14 : organisation rapide
+Étant donné un lien actif et un groupe existant
+Quand j’ouvre le panneau « + » et crée un tag
+Alors le tag est créé et associé au lien en une seule écriture
+Et le panneau reste ouvert
+Quand je sélectionne le groupe existant puis le sélectionne à nouveau
+Alors l’association au groupe est ajoutée puis retirée
+Et les autres associations sont conservées
+Quand je crée un groupe depuis le panneau puis recharge la bibliothèque
+Alors le groupe et son association au lien sont conservés
+
+# B-21 — F-14 : tags compacts et clavier
+Étant donné un lien portant cinq tags
+Alors deux tags et une pastille « +3 » sont visibles dans la ligne
+Quand j’active cette pastille au clavier
+Alors les cinq tags sont accessibles
+Quand j’appuie sur Échap
+Alors le panneau se ferme et le focus revient au déclencheur
+
 ```
 
 Cas complémentaires obligatoires : groupe distinct en cas de collision ; fenêtre avec plusieurs groupes et URLs refusées ; fragment et paramètres d’URL conservés ; URL modifiée vers un doublon refusée ; tags Unicode ; corbeille persistante après redémarrage du navigateur ; échec d’écriture lors de la purge ; confirmation au-delà de 20 onglets ; URL hostile affichée comme texte ; import d’une version future ou supérieur à 10 Mio ; saturation effective du quota ; deux commandes simultanées ; conflit de révision ; worker arrêté puis relancé ; absence de réponse après écriture ; ouverture partielle sans duplication lors d’une reprise.

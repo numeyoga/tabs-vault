@@ -1,4 +1,5 @@
 import './style.css';
+import { showOrganizer, showAllTags } from './organizer.js';
 import { request, observe, extensionMode } from './client.js';
 import { searchLinks, parseImport, MAX_IMPORT_BYTES, previewMergeGroups } from '../domain/vault.js';
 
@@ -139,7 +140,8 @@ function renderList() {
   for (const link of visible.slice(0, displayLimit)) {
     const check = el('input', { type: 'checkbox', 'aria-label': `Sélectionner ${link.title}`, checked: selected.has(link.id), onChange: (e) => { if (e.target.checked) selected.add(link.id); else selected.delete(link.id); renderList(); } });
     const info = el('div', { class: 'link-info' }, [el('h3', { text: link.title }), el('p', { class: 'url', text: link.url }),
-      el('p', { class: 'metadata', text: `${new Date(link.createdAt).toLocaleDateString('fr')} · ${link.tagIds.map((id) => vault.tags.find((t) => t.id === id)?.name).filter(Boolean).join(' · ')}` }),
+      el('p', { class: 'metadata', text: new Date(link.createdAt).toLocaleDateString('fr') }),
+      tagPills(link),
       el('p', { class: 'metadata', text: vault.groups.filter((g) => g.linkIds.includes(link.id)).map((g) => g.name).join(' · ') }),
     ]);
     const actions = el('div', { class: 'actions' });
@@ -153,6 +155,24 @@ function renderList() {
   }
   list.append(fragment); content.append(list);
   if (visible.length > displayLimit) content.append(button(`Afficher les suivants (${visible.length - displayLimit} restants)`, () => { displayLimit += 100; renderList(); }));
+}
+function tagPills(link) {
+  const tags = link.tagIds.map((id) => vault.tags.find((tag) => tag.id === id)).filter(Boolean);
+  const pills = el('div', { class: 'tag-pills', 'aria-label': 'Tags du lien' });
+  for (const tag of tags.slice(0, 2)) pills.append(el('span', { class: 'tag-pill', text: tag.name }));
+  if (tags.length > 2) {
+    const more = button(`+${tags.length - 2}`, () => showAllTags(more, tags), { class: 'tag-pill tag-more', 'aria-label': `Afficher les ${tags.length} tags`, 'aria-haspopup': 'dialog', 'aria-expanded': 'false' });
+    pills.append(more);
+  }
+  if (!link.deletedAt) {
+    const add = button('+', () => showOrganizer(add, link.id, {
+      getVault: () => vault,
+      command: (payload) => mutate('associate', payload, 'Organisation enregistrée.'),
+      refresh: reload,
+    }), { class: 'organizer-trigger', 'aria-label': `Organiser ${link.title}`, 'aria-haspopup': 'dialog', 'aria-expanded': 'false', 'data-organizer-link': link.id });
+    pills.append(add);
+  }
+  return pills;
 }
 async function trashLinks(ids) {
   if (ids.length > 1 && !await confirmDialog('Mettre les liens à la corbeille ?', `${ids.length} liens seront masqués de la bibliothèque.`)) return;

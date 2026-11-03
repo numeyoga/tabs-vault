@@ -206,6 +206,31 @@ export function applyCommand(current, type, payload = {}) {
       }
       l.updatedAt = now(); break;
     }
+    case 'associate': {
+      const link = find(v.links, payload.id);
+      if (link.deletedAt) fail('Réactivez ce lien avant de le modifier.');
+      if (!['tag', 'group'].includes(payload.kind) || typeof payload.assigned !== 'boolean') fail('Association invalide.');
+      let associationId = payload.associationId;
+      if (!associationId) {
+        if (!payload.assigned) fail('Identifiant nécessaire pour retirer une association.');
+        const name = nameOf(payload.name);
+        if (payload.kind === 'tag') associationId = ensureTag(v, name);
+        else {
+          if (v.groups.some((g) => g.name === name)) fail('Sélectionnez le groupe existant.', 'GROUP_CHOICE_REQUIRED');
+          associationId = uuid();
+          v.groups.push({ id: associationId, name, linkIds: [], createdAt: now(), updatedAt: now() });
+        }
+      }
+      if (payload.kind === 'tag') {
+        find(v.tags, associationId);
+        link.tagIds = payload.assigned ? unique([...link.tagIds, associationId]) : link.tagIds.filter((id) => id !== associationId);
+      } else {
+        const group = find(v.groups, associationId);
+        group.linkIds = payload.assigned ? unique([...group.linkIds, link.id]) : group.linkIds.filter((id) => id !== link.id);
+        group.updatedAt = now();
+      }
+      link.updatedAt = now(); result = { associationId }; break;
+    }
     case 'trash':
       for (const id of ids(payload.ids)) {
         const l = find(v.links, id); if (l.deletedAt) continue;

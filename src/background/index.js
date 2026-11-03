@@ -49,7 +49,7 @@ function validSender(sender) {
   const expected = new URL(api.runtime.getURL('library.html'));
   return u.protocol === expected.protocol && u.host === expected.host && u.pathname === expected.pathname;
 }
-const mutations = new Set(['save', 'editLink', 'trash', 'restore', 'purge', 'createGroup', 'renameGroup', 'deleteGroup', 'createTag', 'renameTag', 'deleteTag', 'removeFromGroup', 'move', 'import']);
+const mutations = new Set(['associate', 'save', 'editLink', 'trash', 'restore', 'purge', 'createGroup', 'renameGroup', 'deleteGroup', 'createTag', 'renameTag', 'deleteTag', 'removeFromGroup', 'move', 'import']);
 api.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (!validSender(sender)) { sendResponse({ ok: false, error: { code: 'FORBIDDEN', message: 'Émetteur refusé.' } }); return false; }
   (async () => {

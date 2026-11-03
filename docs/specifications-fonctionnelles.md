@@ -62,6 +62,12 @@ Si un groupe de bibliothèque porte déjà ce nom, l’utilisateur doit choisir 
 
 **F-09 — Groupes et tags.** Créer, renommer et supprimer des groupes et tags. Les noms sont non vides après trim, limités à 100 caractères Unicode. Les tags sont uniques après normalisation Unicode NFC et comparaison en minuscules ; ils conservent leur graphie d’affichage. Les groupes peuvent partager un nom. Retirer un lien d’un groupe ne supprime pas le lien. Supprimer un groupe ou un tag retire uniquement l’organisation correspondante après confirmation. Réordonner les liens d’un groupe avec des commandes accessibles « Monter/Descendre ».
 
+**F-14 — Organisation rapide.** Chaque lien actif possède un bouton « + » à côté de ses tags. Il ouvre un panneau avec recherche, deux sections Tags/Groupes et une coche par association existante. Sélectionner un élément ajoute immédiatement l’association ; le sélectionner à nouveau la retire sans supprimer le tag/groupe ni ses autres associations. Le panneau reste ouvert pour plusieurs modifications, se ferme au clic extérieur ou avec Échap et fonctionne au clavier. Les changements visibles sont confirmés après écriture réussie ; une erreur laisse l’état précédent intact et affiche une explication.
+
+La recherche propose de créer directement un tag ou un groupe nommé lorsqu’aucun nom identique n’existe dans la catégorie concernée. Création et association sont atomiques. Pour les tags, les règles de normalisation de F-09 s’appliquent. Les groupes homonymes existants restent des choix distincts.
+
+Deux tags sont affichés dans la ligne ; au-delà, une pastille « +N » ouvre la liste complète par clic ou clavier. Tous les tags restent visibles dans le formulaire d’édition. Le panneau rapide est réservé aux liens actifs.
+
 ## Réouverture
 
 **F-10 — Unité et lot.** Ouvrir un lien, la sélection ou un groupe. Un lien s’ouvre dans un nouvel onglet ; un lot utilise un groupe natif lorsque disponible. Le groupe est créé dans la fenêtre courante ; en l’absence de groupes natifs, le lot s’ouvre dans une nouvelle fenêtre. L’ordre est celui du groupe ou, pour une sélection, celui de la liste affichée. Au-delà de 20 liens, demander une confirmation indiquant le nombre d’onglets.

@@ -81,6 +81,8 @@ Le stockage d’un document unique simplifie l’intégrité d’une mutation ma
 
 Un seul écrivain, le service worker, traite les commandes dans une file séquentielle : lire → valider → calculer le nouvel état → incrémenter `revision` → attendre `storage.local.set` → répondre. Les erreurs d’une commande ne bloquent pas la suivante. Les pages ne modifient jamais directement `vault`. Une mutation de capture/import est une seule écriture du document ; ne pas prétendre à une transaction distribuée ou à une exécution exactement une fois après crash.
 
+La commande ciblée `associate` ajoute ou retire un tag/groupe sans réécrire les autres associations. Créer puis associer une entité utilise la même écriture atomique. Le panneau d’organisation utilise un popover HTML natif, se repositionne selon sa taille et la fenêtre, et confirme sa coche uniquement après persistance.
+
 Chaque message comporte `{ requestId, type, payload, expectedRevision }`. La réponse contient `{ requestId, ok, revision, result }` ou `{ requestId, ok: false, error: { code, message } }`. Une révision obsolète est rejetée avant mutation ; l’interface recharge puis présente le conflit au lieu d’écraser les modifications. Les intentions de capture sont recalculées après résolution des dialogues si nécessaire.
 
 Codes attendus : `INVALID_INPUT`, `UNSUPPORTED_URL`, `DUPLICATE_URL`, `REVISION_CONFLICT`, `QUOTA_EXCEEDED`, `CAPABILITY_UNAVAILABLE`, `IMPORT_VERSION_UNSUPPORTED`, `BROWSER_OPERATION_FAILED`. Le succès n’est annoncé qu’après persistance. Après interruption avec réponse perdue, relire l’état et demander confirmation avant de rejouer une opération non idempotente.
