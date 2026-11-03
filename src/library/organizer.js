@@ -13,7 +13,7 @@ function panelFor(anchor, label) {
   let closed = false;
   const initialRect = anchor.getBoundingClientRect();
   const position = () => {
-    const replacement = [...document.querySelectorAll('[data-organizer-link]')].find((b) => b.dataset.organizerLink === anchor.dataset.organizerLink);
+    const replacement = [...document.querySelectorAll('[data-organizer-link]')].find((b) => b.dataset.organizerLink === anchor.dataset.organizerLink && b.dataset.organizerKind === anchor.dataset.organizerKind);
     const trigger = anchor.isConnected ? anchor : replacement;
     const rect = trigger?.getBoundingClientRect() ?? initialRect;
     panel.style.left = `${Math.max(8, Math.min(rect.left, window.innerWidth - panel.offsetWidth - 8))}px`;
@@ -24,7 +24,7 @@ function panelFor(anchor, label) {
   panel.addEventListener('toggle', (event) => {
     if (event.newState === 'closed') {
       closed = true; resize.disconnect(); window.removeEventListener('resize', position);
-      const replacement = [...document.querySelectorAll('[data-organizer-link]')].find((b) => b.dataset.organizerLink === anchor.dataset.organizerLink);
+      const replacement = [...document.querySelectorAll('[data-organizer-link]')].find((b) => b.dataset.organizerLink === anchor.dataset.organizerLink && b.dataset.organizerKind === anchor.dataset.organizerKind);
       const trigger = anchor.isConnected ? anchor : replacement;
       trigger?.setAttribute('aria-expanded', 'false');
       if (document.activeElement === document.body || panel.contains(document.activeElement)) trigger?.focus();
@@ -43,14 +43,15 @@ function node(tag, text, className) {
   if (className) element.className = className;
   return element;
 }
-export function showAllTags(anchor, tags) {
-  const { panel, show } = panelFor(anchor, 'Tous les tags');
-  panel.append(node('h3', 'Tous les tags'));
+export function showAllTags(anchor, tags, kind = 'tag') {
+  const label = kind === 'tag' ? 'Tous les tags' : 'Tous les groupes';
+  const { panel, show } = panelFor(anchor, label);
+  panel.append(node('h3', label));
   const list = node('div', '', 'tag-pills');
-  tags.forEach((t) => list.append(node('span', t.name, 'tag-pill')));
+  tags.forEach((t) => list.append(node('span', t.name, kind === 'tag' ? 'tag-pill' : 'group-pill')));
   panel.append(list); show(); panel.tabIndex = -1; panel.focus();
 }
-export function showOrganizer(anchor, linkId, { getVault, command, refresh }) {
+export function showOrganizer(anchor, linkId, { getVault, command, refresh }, preferredKind = 'tag') {
   const { panel, show, isClosed } = panelFor(anchor, 'Tags et groupes');
   const title = node('h3', 'Organiser ce lien');
   const input = node('input'); input.type = 'search'; input.placeholder = 'Rechercher un tag ou un groupe…';
@@ -80,14 +81,14 @@ export function showOrganizer(anchor, linkId, { getVault, command, refresh }) {
     }
   }
   function draw() {
-    const currentTrigger = [...document.querySelectorAll('[data-organizer-link]')].find((b) => b.dataset.organizerLink === linkId);
+    const currentTrigger = [...document.querySelectorAll('[data-organizer-link]')].find((b) => b.dataset.organizerLink === linkId && b.dataset.organizerKind === preferredKind);
     currentTrigger?.setAttribute('aria-expanded', 'true');
     currentTrigger?.setAttribute('aria-controls', panel.id);
     const vault = getVault(), link = vault.links.find((l) => l.id === linkId && !l.deletedAt);
     choices.replaceChildren();
     if (!link) { choices.append(node('p', 'Ce lien n’est plus actif.')); return; }
     const query = input.value.trim().normalize('NFC'), lower = query.toLowerCase();
-    for (const kind of ['tag', 'group']) {
+    for (const kind of preferredKind === 'group' ? ['group', 'tag'] : ['tag', 'group']) {
       const collection = kind === 'tag' ? vault.tags : vault.groups;
       const section = node('section'); section.setAttribute('role', 'region'); section.setAttribute('aria-label', kind === 'tag' ? 'Tags' : 'Groupes');
       section.append(node('h4', kind === 'tag' ? 'Tags' : 'Groupes'));

@@ -221,6 +221,16 @@ Alors les cinq tags sont accessibles
 Quand j’appuie sur Échap
 Alors le panneau se ferme et le focus revient au déclencheur
 
+
+# B-22 — F-14 : interface et boutons contextuels
+Étant donné un lien actif
+Quand j’ouvre le panneau depuis la zone des groupes
+Alors la section Groupes est présentée en premier
+Et je peux créer et associer un groupe
+Quand j’affiche la bibliothèque sur un écran de 390 pixels de large
+Alors la page ne déborde pas horizontalement
+Et le panneau de gestion reste dans la fenêtre
+
 ```
 
 Cas complémentaires obligatoires : groupe distinct en cas de collision ; fenêtre avec plusieurs groupes et URLs refusées ; fragment et paramètres d’URL conservés ; URL modifiée vers un doublon refusée ; tags Unicode ; corbeille persistante après redémarrage du navigateur ; échec d’écriture lors de la purge ; confirmation au-delà de 20 onglets ; URL hostile affichée comme texte ; import d’une version future ou supérieur à 10 Mio ; saturation effective du quota ; deux commandes simultanées ; conflit de révision ; worker arrêté puis relancé ; absence de réponse après écriture ; ouverture partielle sans duplication lors d’une reprise.

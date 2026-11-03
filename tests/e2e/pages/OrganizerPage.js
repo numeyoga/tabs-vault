@@ -1,6 +1,6 @@
 export class OrganizerPage {
   constructor(page) { this.page = page; this.panel = page.getByRole('dialog', { name: 'Tags et groupes', exact: true }); }
-  async open(library, title) { await library.link(title).getByRole('button', { name: `Organiser ${title}`, exact: true }).click(); }
+  async open(library, title, kind = 'tag') { await library.link(title).getByRole('button', { name: kind === 'tag' ? `Organiser ${title}` : `Organiser les groupes de ${title}`, exact: true }).click(); }
   async search(text) { await this.panel.getByRole('searchbox').fill(text); }
   option(kind, name) { return this.panel.getByRole('region', { name: kind === 'tag' ? 'Tags' : 'Groupes', exact: true }).getByRole('checkbox', { name, exact: true }); }
   async toggle(kind, name) {

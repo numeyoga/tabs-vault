@@ -43,7 +43,8 @@ Le manifeste utilise `storage`, `tabs`, `tabGroups` et `contextMenus`. Il exclut
 - Cliquer sur le bouton de l’extension pour sauvegarder immédiatement l’onglet actif. Le badge et le titre du bouton confirment le résultat.
 - Faire un clic droit sur ce bouton pour ouvrir la bibliothèque ou capturer le groupe actif/la fenêtre.
 - Résoudre les noms manquants et collisions avant de confirmer une capture. Les URLs non prises en charge sont signalées, sans fermer d’onglet.
-- Le bouton « + » de chaque lien ouvre une recherche de tags/groupes : cocher ajoute, décocher retire. Créer un élément depuis ce panneau l’associe immédiatement ; le panneau reste ouvert pour plusieurs changements. Deux tags sont visibles par ligne, puis « +N » donne accès à la liste complète.
+- Les boutons « + » des zones tags et groupes de chaque lien ouvrent une recherche de tags/groupes : cocher ajoute, décocher retire. Créer un élément depuis ce panneau l’associe immédiatement ; le panneau reste ouvert pour plusieurs changements. Deux tags sont visibles par ligne, puis « +N » donne accès à la liste complète.
+- Les actions secondaires des liens, groupes et tags se trouvent dans leur menu « … ». Les actions de sélection apparaissent dans une barre contextuelle.
 - Dans la bibliothèque : rechercher, filtrer par tags ou groupes, modifier un lien et ses appartenances, puis ouvrir un lien ou une sélection. Les listes affichent 100 liens à la fois ; « Afficher les suivants » charge la suite, et « Tout sélectionner » couvre tous les résultats filtrés.
 - « Corbeille » masque un lien sans l’effacer. La vue dédiée le réactive avec ses tags et groupes, recréés si nécessaire. « Vider la corbeille » exige une confirmation et est irréversible.
 - L’export JSON exclut la corbeille. L’import ajoute, complète et réactive les liens existants ; il demande une destination en cas de groupe homonyme. Exporter régulièrement : une désinstallation peut effacer les données locales.

@@ -166,3 +166,20 @@ test('B-20 — échec de stockage sans fausse association', async ({ page }) => 
   await organizer.close(); await library.reload();
   await expect(library.link('A')).not.toContainText('Voyage');
 });
+
+test('B-22 / F-14 — bouton de groupe contextuel et interface sans débordement mobile', async ({ page }) => {
+  const { OrganizerPage } = await import('./pages/OrganizerPage.js');
+  const library = new LibraryPage(page), organizer = new OrganizerPage(page);
+  await library.open(); await library.addLink('https://example.test/a', 'Une longue idée à conserver pour le prochain projet');
+  await organizer.open(library, 'Une longue idée à conserver pour le prochain projet', 'group');
+  await expect(organizer.panel.getByRole('region').first()).toHaveAttribute('aria-label', 'Groupes');
+  await organizer.create('group', 'Projet Atlas'); await organizer.close();
+  await page.setViewportSize({ width: 390, height: 844 });
+  await expect(library.link('Une longue idée à conserver pour le prochain projet')).toBeVisible();
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+  await organizer.open(library, 'Une longue idée à conserver pour le prochain projet');
+  await expect(organizer.panel).toBeVisible();
+  const box = await organizer.panel.boundingBox();
+  expect(box.x).toBeGreaterThanOrEqual(0); expect(box.x + box.width).toBeLessThanOrEqual(390);
+  await organizer.close();
+});

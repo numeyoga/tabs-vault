@@ -12,7 +12,7 @@ export class LibraryPage {
   link(title) { return this.page.getByRole('listitem').filter({ has: this.page.getByRole('heading', { name: title, exact: true }) }); }
   async reload() { await this.page.reload(); await this.page.getByRole('status').filter({ hasText: 'Bibliothèque prête.' }).waitFor(); }
   async showGroup(name) { await this.page.getByRole('button', { name, exact: true }).click(); }
-  async removeFromGroup(title) { await this.link(title).getByRole('button', { name: 'Retirer du groupe', exact: true }).click(); }
+  async removeFromGroup(title) { await this.openLinkMenu(title); await this.link(title).getByRole('button', { name: 'Retirer du groupe', exact: true }).click(); }
   async dismissDialog() { await this.page.getByRole('dialog').getByRole('button', { name: 'Annuler', exact: true }).click(); }
   async confirmDialog() { await this.page.getByRole('dialog').getByRole('button', { name: 'Confirmer', exact: true }).click(); }
   async measureSearch(text) {
@@ -27,6 +27,7 @@ export class LibraryPage {
     await dialog.getByRole('button', { name: 'Enregistrer' }).click(); await dialog.waitFor({ state: 'detached' });
   }
   async editLink(title, { tags, groups = [], newTitle, url } = {}) {
+    await this.openLinkMenu(title);
     await this.link(title).getByRole('button', { name: 'Modifier', exact: true }).click();
     const dialog = this.page.getByRole('dialog');
     if (tags) await dialog.getByLabel('Tags (un par ligne)').fill(tags.join('\n'));
@@ -35,7 +36,8 @@ export class LibraryPage {
     for (const group of groups) await dialog.getByRole('checkbox', { name: group, exact: true }).check();
     await dialog.getByRole('button', { name: 'Enregistrer' }).click();
   }
-  async trash(title) { await this.link(title).getByRole('button', { name: 'Corbeille', exact: true }).click(); }
+  async openLinkMenu(title) { await this.link(title).getByRole('button', { name: `Actions pour ${title}`, exact: true }).click(); }
+  async trash(title) { await this.openLinkMenu(title); await this.link(title).getByRole('button', { name: 'Corbeille', exact: true }).click(); }
   async showTrash() { await this.page.getByRole('button', { name: /^Corbeille \(/ }).click(); }
   async showAll() { await this.page.getByRole('button', { name: /^Tous les liens \(/ }).click(); }
   async restore(title) { await this.link(title).getByRole('button', { name: 'Réactiver', exact: true }).click(); }
@@ -46,10 +48,12 @@ export class LibraryPage {
     await dialog.waitFor({ state: 'detached' });
   }
   async deleteGroup(name) {
+    await this.page.getByRole('button', { name: `Actions du groupe ${name}`, exact: true }).click();
     await this.page.getByRole('button', { name: `Supprimer le groupe ${name}`, exact: true }).click();
     await this.page.getByRole('dialog').getByRole('button', { name: 'Confirmer' }).click();
   }
   async deleteTag(name) {
+    await this.page.getByRole('button', { name: `Actions du tag ${name}`, exact: true }).click();
     await this.page.getByRole('button', { name: `Supprimer le tag ${name}`, exact: true }).click();
     await this.page.getByRole('dialog').getByRole('button', { name: 'Confirmer' }).click();
   }

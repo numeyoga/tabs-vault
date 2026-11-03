@@ -1,4 +1,5 @@
 import './style.css';
+import { icon } from './icons.js';
 import { showOrganizer, showAllTags } from './organizer.js';
 import { request, observe, extensionMode } from './client.js';
 import { searchLinks, parseImport, MAX_IMPORT_BYTES, previewMergeGroups } from '../domain/vault.js';
@@ -15,6 +16,7 @@ function el(tag, attrs = {}, children = []) {
     else if (key === 'class') node.className = value;
     else if (key === 'checked') node.checked = value;
     else if (key === 'value') node.value = value;
+    else if (key.startsWith('aria-')) node.setAttribute(key, String(value));
     else if (value !== false && value != null) node.setAttribute(key, value === true ? '' : value);
   }
   node.append(...children.filter(Boolean)); return node;
@@ -28,11 +30,33 @@ const search = el('input', { type: 'search', placeholder: 'Titre, URL ou tag…'
   filter.text = e.target.value; displayLimit = 100; selected.clear(); renderList();
 } });
 const heading = el('h1', { text: 'Tabs Vault' });
-const topActions = el('div', { class: 'actions' });
-const header = el('header', {}, [el('div', {}, [heading, el('p', { text: 'Vos onglets, à retrouver. Vos données, chez vous.' })]), topActions]);
-const toolbar = el('section', { class: 'toolbar', 'aria-label': 'Recherche et actions' }, [search]);
-const shell = el('div', { class: 'shell' }, [nav, el('div', { class: 'workspace' }, [toolbar, content])]);
-root.append(header, ...(!extensionMode ? [el('p', { class: 'preview', text: 'Aperçu local : les captures et ouvertures natives nécessitent l’extension installée.' })] : []), status, errors, shell);
+const topActions = el('div', { class: 'actions top-actions' });
+const breadcrumb = el('p', { class: 'breadcrumb', text: 'Bibliothèque / Tous les liens' });
+const heroTitle = el('h2', { class: 'hero-title', text: 'Vos idées, à portée d’onglet.' });
+const heroCount = el('p', { class: 'hero-count' });
+const header = el('header', { class: 'page-header' }, [el('div', {}, [breadcrumb, heroTitle, heroCount]), topActions]);
+const filterBar = el('div', { class: 'filter-bar', 'aria-label': 'Filtres de tags' });
+const toolbar = el('section', { class: 'toolbar', 'aria-label': 'Recherche et actions' }, [el('div', { class: 'search-field' }, [icon('search'), search]), filterBar]);
+const workspace = el('div', { class: 'workspace' }, [header, toolbar, content]);
+const shell = el('div', { class: 'shell' }, [nav, workspace]);
+root.append(shell, status, errors);
+if (!extensionMode) workspace.append(el('p', { class: 'preview', text: 'Aperçu local : les captures et ouvertures natives nécessitent l’extension installée.' }));
+function withIcon(node, name) { node.prepend(icon(name)); return node; }
+function actionMenu(label, entries) {
+  const details = el('details', { class: 'action-menu' });
+  const summary = el('summary', { role: 'button', 'aria-label': label, 'aria-expanded': 'false', title: label }, [icon('more')]);
+  const items = el('div', { class: 'menu-items' });
+  for (const entry of entries) items.append(button(entry.label, () => { details.open = false; return entry.action(); }, { class: entry.danger ? 'danger' : '' }));
+  details.append(summary, items); details.addEventListener('toggle', () => summary.setAttribute('aria-expanded', String(details.open))); return details;
+}
+document.addEventListener('pointerdown', (event) => {
+  for (const menu of document.querySelectorAll('.action-menu[open]')) if (!menu.contains(event.target)) menu.open = false;
+});
+document.addEventListener('keydown', (event) => {
+  if (event.key !== 'Escape') return;
+  for (const menu of document.querySelectorAll('.action-menu[open]')) { menu.open = false; menu.querySelector('summary').focus(); }
+});
+
 function announce(text) { status.textContent = text; }
 function showError(error) {
   errors.replaceChildren(el('p', { text: error.message }));
@@ -70,40 +94,57 @@ function switchView(trash, groupId = '') {
   filter.trash = trash; filter.groupId = groupId; filter.tagIds = []; displayLimit = 100; selected.clear(); render();
 }
 function render() {
-  nav.replaceChildren(
-    el('h2', { text: 'Bibliothèque' }),
-    button(`Tous les liens (${vault.links.filter((l) => !l.deletedAt).length})`, () => switchView(false), { 'aria-pressed': !filter.trash && !filter.groupId }),
-    button(`Corbeille (${vault.links.filter((l) => l.deletedAt).length})`, () => switchView(true), { 'aria-pressed': filter.trash }),
-    el('h2', { text: 'Groupes' }), button('+ Nouveau groupe', () => nameDialog('Créer un groupe', '', (name) => mutate('createGroup', { name }))),
-  );
+  const activeIds = new Set(vault.links.filter((l) => !l.deletedAt).map((l) => l.id));
+  const activeCount = activeIds.size;
+  const trashCount = vault.links.length - activeCount;
+  const brand = el('div', { class: 'brand' }, [el('span', { class: 'brand-mark' }, [icon('bookmark')]), heading]);
+  const sidebarBody = el('div', { class: 'sidebar-body' });
+  const navButton = (label, count, name, action, attrs = {}) => {
+    const node = button('', action, { class: 'nav-button', ...attrs });
+    node.append(icon(name), el('span', { text: label }), el('span', { class: 'count', text: String(count), 'aria-hidden': 'true' })); return node;
+  };
+  sidebarBody.append(navButton('Bibliothèque', activeCount, 'layers', () => switchView(false), { 'aria-label': `Tous les liens (${activeCount})`, 'aria-pressed': !filter.trash && !filter.groupId }));
+  sidebarBody.append(el('div', { class: 'sidebar-section' }, [el('h2', { text: 'Groupes' }), withIcon(button('', () => nameDialog('Créer un groupe', '', (name) => mutate('createGroup', { name })), { class: 'icon-button', 'aria-label': '+ Nouveau groupe', title: 'Nouveau groupe' }), 'plus')]));
+  if (!vault.groups.length) sidebarBody.append(el('p', { class: 'sidebar-hint', text: 'Un peu d’ordre dans vos idées.' }));
   for (const group of vault.groups) {
-    nav.append(el('div', { class: 'nav-row' }, [
-      button(group.name, () => switchView(false, group.id), { 'aria-pressed': filter.groupId === group.id && !filter.trash }),
-      button('Renommer', () => nameDialog('Renommer le groupe', group.name, (name) => mutate('renameGroup', { id: group.id, name })), { 'aria-label': `Renommer le groupe ${group.name}` }),
-      button('×', async () => {
-        if (await confirmDialog('Supprimer ce groupe ?', 'Les liens restent dans la bibliothèque.')) await mutate('deleteGroup', { id: group.id });
-      }, { 'aria-label': `Supprimer le groupe ${group.name}` }),
+    const count = group.linkIds.filter((id) => activeIds.has(id)).length;
+    sidebarBody.append(el('div', { class: 'nav-row' }, [
+      navButton(group.name, count, 'folder', () => switchView(false, group.id), { 'aria-label': group.name, 'aria-pressed': filter.groupId === group.id && !filter.trash }),
+      actionMenu(`Actions du groupe ${group.name}`, [
+        { label: `Renommer le groupe ${group.name}`, action: () => nameDialog('Renommer le groupe', group.name, (name) => mutate('renameGroup', { id: group.id, name })) },
+        { label: `Supprimer le groupe ${group.name}`, danger: true, action: async () => { if (await confirmDialog('Supprimer ce groupe ?', 'Les liens restent dans la bibliothèque.')) await mutate('deleteGroup', { id: group.id }); } },
+      ]),
     ]));
   }
-  nav.append(el('h2', { text: 'Tags' }), button('+ Nouveau tag', () => nameDialog('Créer un tag', '', (name) => mutate('createTag', { name }))));
+  sidebarBody.append(el('div', { class: 'sidebar-section' }, [el('h2', { text: 'Tags' }), withIcon(button('', () => nameDialog('Créer un tag', '', (name) => mutate('createTag', { name })), { class: 'icon-button', 'aria-label': '+ Nouveau tag', title: 'Nouveau tag' }), 'plus')]));
   for (const tag of vault.tags) {
     const check = el('input', { type: 'checkbox', checked: filter.tagIds.includes(tag.id), onChange: (e) => {
-      filter.tagIds = e.target.checked ? [...filter.tagIds, tag.id] : filter.tagIds.filter((id) => id !== tag.id); displayLimit = 100; selected.clear(); renderList();
+      filter.tagIds = e.target.checked ? [...filter.tagIds, tag.id] : filter.tagIds.filter((id) => id !== tag.id); displayLimit = 100; selected.clear(); renderList(); renderFilters();
     } });
-    nav.append(el('div', { class: 'nav-row' }, [el('label', {}, [check, document.createTextNode(tag.name)]),
-      button('Renommer', () => nameDialog('Renommer le tag', tag.name, (name) => mutate('renameTag', { id: tag.id, name })), { 'aria-label': `Renommer le tag ${tag.name}` }),
-      button('×', async () => { if (await confirmDialog('Supprimer ce tag ?', 'Les liens sont conservés.')) await mutate('deleteTag', { id: tag.id }); }, { 'aria-label': `Supprimer le tag ${tag.name}` }),
+    sidebarBody.append(el('div', { class: 'nav-row tag-nav' }, [el('label', {}, [check, icon('tag'), el('span', { text: tag.name })]),
+      actionMenu(`Actions du tag ${tag.name}`, [
+        { label: `Renommer le tag ${tag.name}`, action: () => nameDialog('Renommer le tag', tag.name, (name) => mutate('renameTag', { id: tag.id, name })) },
+        { label: `Supprimer le tag ${tag.name}`, danger: true, action: async () => { if (await confirmDialog('Supprimer ce tag ?', 'Les liens sont conservés.')) await mutate('deleteTag', { id: tag.id }); } },
+      ]),
     ]));
   }
+  nav.replaceChildren(brand, sidebarBody, el('div', { class: 'sidebar-footer' }, [navButton('Corbeille', trashCount, 'trash', () => switchView(true), { 'aria-label': `Corbeille (${trashCount})`, 'aria-pressed': filter.trash }), el('p', { class: 'local-note' }, [icon('lock'), document.createTextNode('Stockage local uniquement')])]));
   topActions.replaceChildren(
     ...(!extensionMode ? [button('Ajouter un lien de démonstration', () => addDialog())] : []),
-    button('Exporter', async () => {
+    withIcon(button('Exporter', async () => {
       if (!await confirmDialog('Exporter les liens actifs ?', 'Ce fichier non chiffré contient vos URLs. La corbeille est exclue.')) return;
       download((await request('export')).export, 'tabs-vault.json');
-    }),
-    button('Importer', () => importInput.click()),
+    }), 'upload'),
+    withIcon(button('Importer', () => importInput.click()), 'download'),
   );
-  renderList();
+  renderFilters(); renderList();
+}
+function renderFilters() {
+  const all = button('Tous', () => { filter.tagIds = []; selected.clear(); render(); }, { class: 'filter-chip', 'aria-pressed': !filter.tagIds.length });
+  filterBar.replaceChildren(all);
+  for (const tag of vault.tags.slice(0, 8)) filterBar.append(button(tag.name, () => {
+    filter.tagIds = filter.tagIds.includes(tag.id) ? filter.tagIds.filter((id) => id !== tag.id) : [...filter.tagIds, tag.id]; selected.clear(); render();
+  }, { class: 'filter-chip', 'aria-pressed': filter.tagIds.includes(tag.id) }));
 }
 function renderList() {
   if (!vault) return;
@@ -112,12 +153,16 @@ function renderList() {
   selected = new Set([...selected].filter((id) => visible.some((l) => l.id === id)));
   const group = vault.groups.find((g) => g.id === filter.groupId);
   const title = filter.trash ? 'Corbeille' : group?.name ?? 'Tous les liens';
-  const bulk = el('div', { class: 'actions' });
+  const bulk = el('div', { class: 'actions bulk-actions', hidden: !selected.size, 'aria-label': 'Actions de sélection' });
+  const viewActions = el('div', { class: 'actions view-actions' });
+  breadcrumb.textContent = `Bibliothèque / ${title}`;
+  heroTitle.textContent = filter.trash ? 'Rien ne se perd, tout se retrouve.' : group?.name ?? 'Vos idées, à portée d’onglet.';
+  heroCount.textContent = `${visible.length} lien${visible.length === 1 ? '' : 's'} ${filter.trash ? 'dans la corbeille' : 'à retrouver'}`;
   const all = el('input', { type: 'checkbox', checked: visible.length > 0 && visible.every((l) => selected.has(l.id)), onChange: (e) => { selected = new Set(e.target.checked ? visible.map((l) => l.id) : []); renderList(); } });
-  bulk.append(el('label', {}, [all, document.createTextNode('Tout sélectionner')]), el('span', { text: `${selected.size} sélectionné(s)` }));
+  bulk.append(el('strong', { text: `${selected.size} lien(s) sélectionné(s)` }));
   if (filter.trash) {
-    bulk.append(button('Réactiver la sélection', () => mutate('restore', { ids: [...selected] }, 'Liens réactivés.'), { disabled: !selected.size }),
-      button('Vider la corbeille', async () => {
+    bulk.append(button('Réactiver la sélection', () => mutate('restore', { ids: [...selected] }, 'Liens réactivés.'), { disabled: !selected.size }));
+    viewActions.append(button('Vider la corbeille', async () => {
         const count = vault.links.filter((l) => l.deletedAt).length;
         if (await confirmDialog('Vider définitivement la corbeille ?', `${count} lien(s) seront effacés. Cette action est irréversible.`)) {
           await mutate('purge', { confirmed: true }, 'Corbeille vidée.'); selected.clear(); renderList();
@@ -126,54 +171,67 @@ function renderList() {
   } else {
     bulk.append(button('Ouvrir la sélection', () => openSelection(visible.filter((l) => selected.has(l.id)), group?.name), { disabled: !selected.size }),
       button('Mettre la sélection à la corbeille', () => trashLinks([...selected]), { disabled: !selected.size }));
-    if (group) bulk.append(button('Ouvrir le groupe', () => openSelection(searchLinks(vault, { groupId: group.id, order: 'group' }), group.name)),
-      button('Retirer la sélection du groupe', () => mutate('removeFromGroup', { groupId: group.id, ids: [...selected] }), { disabled: !selected.size }));
+    if (group) {
+      viewActions.append(withIcon(button('Ouvrir le groupe', () => openSelection(searchLinks(vault, { groupId: group.id, order: 'group' }), group.name), { class: 'primary' }), 'open'));
+      bulk.append(button('Retirer la sélection du groupe', () => mutate('removeFromGroup', { groupId: group.id, ids: [...selected] }), { disabled: !selected.size }));
+    }
   }
   const sort = el('select', { 'aria-label': 'Trier', onChange: (e) => { filter.order = e.target.value; selected.clear(); renderList(); } }, [
     el('option', { value: 'date', text: 'Date de sauvegarde' }), ...(group ? [el('option', { value: 'group', text: 'Ordre du groupe' })] : []),
   ]); sort.value = filter.order === 'group' && group ? 'group' : 'date';
-  content.replaceChildren(el('div', { class: 'section-heading' }, [el('h2', { text: `${title} · ${visible.length}` }), sort]), bulk);
+  content.replaceChildren(el('div', { class: 'section-heading' }, [el('h2', { text: `${title} · ${visible.length}` }), viewActions]), el('div', { class: 'list-tools' }, [el('label', {}, [all, document.createTextNode('Tout sélectionner')]), sort]), bulk);
   if (filter.trash) content.append(el('p', { text: 'Les liens restent ici jusqu’à réactivation ou vidage définitif. Ils ne sont pas inclus dans les exports.' }));
-  if (!visible.length) content.append(el('p', { class: 'empty', text: 'Aucun lien à afficher.' }));
+  if (!visible.length) content.append(el('div', { class: 'empty' }, [icon(filter.trash ? 'trash' : 'bookmark'), el('h3', { text: filter.text || filter.tagIds.length ? 'Pas encore trouvé ?' : 'De la place pour vos prochaines idées.' }), el('p', { text: filter.text || filter.tagIds.length ? 'Essayez un autre mot ou ajustez vos filtres.' : filter.trash ? 'Aucun lien dans la corbeille.' : 'Sauvegardez un onglet avec le bouton de l’extension pour le retrouver ici.' })]));
   const list = el('ul', { class: 'links', 'aria-label': 'Liens sauvegardés' });
   const fragment = document.createDocumentFragment();
   for (const link of visible.slice(0, displayLimit)) {
     const check = el('input', { type: 'checkbox', 'aria-label': `Sélectionner ${link.title}`, checked: selected.has(link.id), onChange: (e) => { if (e.target.checked) selected.add(link.id); else selected.delete(link.id); renderList(); } });
-    const info = el('div', { class: 'link-info' }, [el('h3', { text: link.title }), el('p', { class: 'url', text: link.url }),
-      el('p', { class: 'metadata', text: new Date(link.createdAt).toLocaleDateString('fr') }),
-      tagPills(link),
-      el('p', { class: 'metadata', text: vault.groups.filter((g) => g.linkIds.includes(link.id)).map((g) => g.name).join(' · ') }),
-    ]);
-    const actions = el('div', { class: 'actions' });
+    const domain = new URL(link.url).hostname.replace(/^www\./, '');
+    const monogram = el('span', { class: 'domain-mark', text: domain[0].toUpperCase(), 'aria-hidden': 'true' });
+    const info = el('div', { class: 'link-info' }, [el('h3', { text: link.title, title: link.title }), el('p', { class: 'url', text: domain, title: link.url })]);
+    const associations = el('div', { class: 'associations' }, [associationPills(link, 'tag'), associationPills(link, 'group')]);
+    const date = el('time', { class: 'metadata', datetime: link.createdAt, text: new Date(link.createdAt).toLocaleDateString('fr', { day: 'numeric', month: 'short' }), title: new Date(link.createdAt).toLocaleString('fr') });
+    const actions = el('div', { class: 'row-actions' });
     if (filter.trash) actions.append(button('Réactiver', () => mutate('restore', { ids: [link.id] }, 'Lien réactivé.')));
     else {
-      actions.append(button('Ouvrir', () => openSelection([link], undefined, true)), button('Modifier', () => editDialog(link)), button('Corbeille', () => trashLinks([link.id])));
-      if (group) actions.append(button('Retirer du groupe', () => mutate('removeFromGroup', { groupId: group.id, ids: [link.id] })),
-        button('Monter', () => mutate('move', { groupId: group.id, id: link.id, direction: -1 })), button('Descendre', () => mutate('move', { groupId: group.id, id: link.id, direction: 1 })));
+      actions.append(withIcon(button('', () => openSelection([link], undefined, true), { class: 'icon-button', 'aria-label': 'Ouvrir', title: 'Ouvrir ce lien' }), 'open'));
+      const entries = [
+        { label: 'Modifier', action: () => editDialog(link) },
+        { label: 'Corbeille', danger: true, action: () => trashLinks([link.id]) },
+      ];
+      if (group) entries.splice(1, 0,
+        { label: 'Retirer du groupe', action: () => mutate('removeFromGroup', { groupId: group.id, ids: [link.id] }) },
+        { label: 'Monter', action: () => mutate('move', { groupId: group.id, id: link.id, direction: -1 }) },
+        { label: 'Descendre', action: () => mutate('move', { groupId: group.id, id: link.id, direction: 1 }) });
+      actions.append(actionMenu(`Actions pour ${link.title}`, entries));
     }
-    fragment.append(el('li', { 'data-link-id': link.id }, [check, info, actions]));
+    fragment.append(el('li', { 'data-link-id': link.id, class: selected.has(link.id) ? 'is-selected' : '' }, [check, monogram, info, associations, date, actions]));
   }
+
   list.append(fragment); content.append(list);
   if (visible.length > displayLimit) content.append(button(`Afficher les suivants (${visible.length - displayLimit} restants)`, () => { displayLimit += 100; renderList(); }));
 }
-function tagPills(link) {
-  const tags = link.tagIds.map((id) => vault.tags.find((tag) => tag.id === id)).filter(Boolean);
-  const pills = el('div', { class: 'tag-pills', 'aria-label': 'Tags du lien' });
-  for (const tag of tags.slice(0, 2)) pills.append(el('span', { class: 'tag-pill', text: tag.name }));
-  if (tags.length > 2) {
-    const more = button(`+${tags.length - 2}`, () => showAllTags(more, tags), { class: 'tag-pill tag-more', 'aria-label': `Afficher les ${tags.length} tags`, 'aria-haspopup': 'dialog', 'aria-expanded': 'false' });
+function associationPills(link, kind) {
+  const isTag = kind === 'tag';
+  const items = isTag ? link.tagIds.map((id) => vault.tags.find((tag) => tag.id === id)).filter(Boolean) : vault.groups.filter((g) => g.linkIds.includes(link.id));
+  const className = isTag ? 'tag-pill' : 'group-pill';
+  const pills = el('div', { class: isTag ? 'tag-pills' : 'group-pills', 'aria-label': isTag ? 'Tags du lien' : 'Groupes du lien' });
+  for (const item of items.slice(0, 2)) pills.append(el('span', { class: className, text: item.name, title: item.name }));
+  if (items.length > 2) {
+    const more = button(`+${items.length - 2}`, () => showAllTags(more, items, kind), { class: `${className} pill-more`, 'aria-label': `Afficher les ${items.length} ${isTag ? 'tags' : 'groupes'}`, 'aria-haspopup': 'dialog', 'aria-expanded': 'false' });
     pills.append(more);
   }
   if (!link.deletedAt) {
-    const add = button('+', () => showOrganizer(add, link.id, {
+    const add = button(items.length ? '+' : isTag ? '+ Tag' : '+ Groupe', () => showOrganizer(add, link.id, {
       getVault: () => vault,
       command: (payload) => mutate('associate', payload, 'Organisation enregistrée.'),
       refresh: reload,
-    }), { class: 'organizer-trigger', 'aria-label': `Organiser ${link.title}`, 'aria-haspopup': 'dialog', 'aria-expanded': 'false', 'data-organizer-link': link.id });
+    }, kind), { class: `${className} organizer-trigger`, 'aria-label': isTag ? `Organiser ${link.title}` : `Organiser les groupes de ${link.title}`, title: isTag ? 'Ajouter ou retirer des tags' : 'Ajouter ou retirer des groupes', 'aria-haspopup': 'dialog', 'aria-expanded': 'false', 'data-organizer-link': link.id, 'data-organizer-kind': kind });
     pills.append(add);
   }
   return pills;
 }
+
 async function trashLinks(ids) {
   if (ids.length > 1 && !await confirmDialog('Mettre les liens à la corbeille ?', `${ids.length} liens seront masqués de la bibliothèque.`)) return;
   await mutate('trash', { ids }, 'Liens déplacés dans la corbeille.'); selected.clear(); renderList();
