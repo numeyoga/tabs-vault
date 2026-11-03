@@ -1,10 +1,18 @@
 export class CaptureDialogPage {
   constructor(page) {
-    this.dialog = page.getByRole('dialog');
+    this.dialog = page.getByRole('dialog', {
+      name: /^(Importer la bibliothèque|Sauvegarder les onglets)$/,
+    });
   }
   async chooseExisting(name) {
     const select = this.dialog.getByRole('combobox', { name: `Destination du groupe ${name}` });
-    const option = select.getByRole('option', { name: new RegExp(`^Compléter ${name}`) }).first();
+    const escapedName = name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const option = select
+      .getByRole('option', {
+        name: new RegExp(`^Compléter ${escapedName} \\(`),
+        includeHidden: true,
+      })
+      .first();
     await select.selectOption(await option.getAttribute('value'));
   }
   async chooseDistinct(name) {

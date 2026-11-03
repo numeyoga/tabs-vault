@@ -109,19 +109,32 @@ export class LibraryPage {
     await this.page
       .getByRole('button', { name: `Supprimer le groupe ${name}`, exact: true })
       .click();
-    await this.page.getByRole('dialog').getByRole('button', { name: 'Confirmer' }).click();
+    const dialog = this.page.getByRole('dialog');
+    await dialog.getByRole('button', { name: 'Confirmer' }).click();
+    await dialog.waitFor({ state: 'detached' });
+    await this.waitForReady();
   }
   async deleteTag(name) {
     await this.page.getByRole('button', { name: `Actions du tag ${name}`, exact: true }).click();
     await this.page.getByRole('button', { name: `Supprimer le tag ${name}`, exact: true }).click();
-    await this.page.getByRole('dialog').getByRole('button', { name: 'Confirmer' }).click();
+    const dialog = this.page.getByRole('dialog');
+    await dialog.getByRole('button', { name: 'Confirmer' }).click();
+    await dialog.waitFor({ state: 'detached' });
+    await this.waitForReady();
+  }
+  async waitForReady() {
+    await this.page.locator('#app[aria-busy="true"]').waitFor({ state: 'detached' });
   }
   async importJson(data) {
+    // File assignment dispatches change directly; unlike the Import button it
+    // must wait until the current mutation releases the UI command guard.
+    await this.waitForReady();
     await this.page.locator('input[type=file]').setInputFiles({
       name: 'vault.json',
       mimeType: 'application/json',
       buffer: Buffer.from(JSON.stringify(data)),
     });
+    await this.waitForReady();
   }
   async exportJson() {
     await this.page.getByRole('button', { name: 'Exporter', exact: true }).click();

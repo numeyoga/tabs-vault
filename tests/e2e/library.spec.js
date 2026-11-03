@@ -148,9 +148,13 @@ test('B-15, B-19 — import demandant la destination du groupe recréé à la r�
   await expect(page.getByRole('dialog')).toHaveCount(0);
   const data = await library.exportJson();
   await library.trash('A');
+  await expect(library.link('A')).toHaveCount(0);
   await library.deleteGroup('Voyage');
+  await expect(page.getByRole('button', { name: 'Voyage', exact: true })).toHaveCount(0);
   await library.deleteTag('urgent');
+  await expect(page.getByRole('checkbox', { name: 'urgent', exact: true })).toHaveCount(0);
   await library.importJson(data);
+  await expect(capture.dialog).toBeVisible();
   await capture.chooseExisting('Voyage');
   await capture.confirm();
   await expect(page.getByRole('dialog')).toHaveCount(0);
@@ -304,4 +308,25 @@ test('B-22 / F-14 — bouton de groupe contextuel et interface sans débordement
   expect(box.x).toBeGreaterThanOrEqual(0);
   expect(box.x + box.width).toBeLessThanOrEqual(390);
   await organizer.close();
+});
+
+test('B-03 — sélectionner un groupe dont le nom contient des caractères spéciaux', async ({
+  page,
+}) => {
+  const { CaptureDialogPage } = await import('./pages/CaptureDialogPage.js');
+  const library = new LibraryPage(page);
+  const capture = new CaptureDialogPage(page);
+  const name = 'Voyage (2026) [A+B]';
+  await library.open();
+  await library.addLink('https://example.test/a', 'A');
+  await library.createGroup(name);
+  await library.editLink('A', { groups: [name] });
+  await expect(page.getByRole('dialog')).toHaveCount(0);
+  const data = await library.exportJson();
+  await library.importJson(data);
+  await capture.chooseExisting(name);
+  await capture.confirm();
+  await expect(capture.dialog).toHaveCount(0);
+  await expect(page.getByRole('button', { name, exact: true })).toHaveCount(1);
+  await expect(library.link('A')).toContainText(name);
 });
