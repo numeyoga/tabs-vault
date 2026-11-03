@@ -1,7 +1,7 @@
 ---
-created_at: "2026-11-03"
-updated_at: "2026-11-03"
-application_version: "0.1.0"
+created_at: '2026-11-03'
+updated_at: '2026-11-03'
+application_version: '0.1.0'
 ---
 
 # Stratégie de test et BDD
@@ -21,7 +21,7 @@ Statut : décisions principales confirmées le 2026-11-03. Sauvegarde immédiate
 
 ## Approche retenue
 
-Oui au BDD (*Behavior-Driven Development*, développement guidé par les comportements) pour définir les règles visibles avec des exemples « Étant donné / Quand / Alors ». Le BDD sert d’abord à clarifier les attentes, puis à guider des tests automatisés. Il ne remplace pas les tests unitaires ni les vérifications sur les vrais navigateurs.
+Oui au BDD (_Behavior-Driven Development_, développement guidé par les comportements) pour définir les règles visibles avec des exemples « Étant donné / Quand / Alors ». Le BDD sert d’abord à clarifier les attentes, puis à guider des tests automatisés. Il ne remplace pas les tests unitaires ni les vérifications sur les vrais navigateurs.
 
 Les scénarios BDD sont reliés aux tests par leurs identifiants B-xx et F-xx. Les parcours utilisent le Page Object Model (POM) pour exprimer les actions utilisateur. Aucun Cucumber, interpréteur Gherkin ou framework BDD supplémentaire. Vitest et Playwright sont confirmés. Les descriptions BDD sont maintenues en Markdown dans ce document ; les tests JavaScript suivent la même structure Étant donné / Quand / Alors et conservent les mêmes identifiants.
 
@@ -51,12 +51,12 @@ Cet exemple n’est pas un test exécuté. L’implémentation du pilote doit pr
 
 ## Niveaux de test
 
-| Niveau | Outil retenu | Vérifications |
-| --- | --- | --- |
-| Unitaire | Vitest, environnement Node | Identité URL, tags, recherche, ordre, fusion, validation JSON et invariants. |
-| Intégration | Vitest avec adaptateur navigateur simulé ; DOM simulé si nécessaire | Commandes, révisions, écritures concurrentes, quotas, messages, migrations, état des formulaires. |
-| Parcours réels | Playwright avec extension compilée dans Chromium | Persistance, captures, groupes, ouverture, import/export, navigation clavier et erreurs partielles. |
-| Compatibilité | Tests sur les quatre navigateurs réels | Action de barre, menus, permissions, stockage, groupes natifs, repli et redémarrage. |
+| Niveau         | Outil retenu                                                        | Vérifications                                                                                       |
+| -------------- | ------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------- |
+| Unitaire       | Vitest, environnement Node                                          | Identité URL, tags, recherche, ordre, fusion, validation JSON et invariants.                        |
+| Intégration    | Vitest avec adaptateur navigateur simulé ; DOM simulé si nécessaire | Commandes, révisions, écritures concurrentes, quotas, messages, migrations, état des formulaires.   |
+| Parcours réels | Playwright avec extension compilée dans Chromium                    | Persistance, captures, groupes, ouverture, import/export, navigation clavier et erreurs partielles. |
+| Compatibilité  | Tests sur les quatre navigateurs réels                              | Action de barre, menus, permissions, stockage, groupes natifs, repli et redémarrage.                |
 
 Les doubles de test simulent des erreurs déterministes, mais ne prouvent pas le fonctionnement de `chrome.storage`, du service worker ou des groupes. Des parcours réels couvrent ces contrats. La suite `test:e2e` valide l’interface compilée avec le stockage d’aperçu, dans des contextes isolés. La suite séparée `test:e2e:extension` utilise un profil temporaire dédié et une extension Manifest V3 chargée dans un contexte persistant ; elle nécessite un navigateur autorisant les extensions non empaquetées. Les deux suites utilisent Chromium sans interface. Le chargement d’extension et les boutons natifs ne sont pas validés par la suite d’aperçu.
 
@@ -239,12 +239,12 @@ L’export/import doit préserver l’équivalence fonctionnelle du graphe, pas 
 
 ## Matrice des navigateurs
 
-| Navigateur stable sur ordinateur | Automatisation initiale | Validation avant livraison |
-| --- | --- | --- |
-| Chrome | Parcours automatisés Chromium comme base ; Chrome réel en complément | Installation, action/menu, capture, persistance après relance, groupes, export/import. |
-| Edge | Manuelle initialement | Même parcours ; noter les restrictions propres au produit. |
-| Brave | Manuelle initialement | Même parcours, avec réglages de protection par défaut. |
-| Opera | Manuelle initialement | Même parcours ; vérifier explicitement le contrôle des Tab Islands ou le repli annoncé. |
+| Navigateur stable sur ordinateur | Automatisation initiale                                              | Validation avant livraison                                                              |
+| -------------------------------- | -------------------------------------------------------------------- | --------------------------------------------------------------------------------------- |
+| Chrome                           | Parcours automatisés Chromium comme base ; Chrome réel en complément | Installation, action/menu, capture, persistance après relance, groupes, export/import.  |
+| Edge                             | Manuelle initialement                                                | Même parcours ; noter les restrictions propres au produit.                              |
+| Brave                            | Manuelle initialement                                                | Même parcours, avec réglages de protection par défaut.                                  |
+| Opera                            | Manuelle initialement                                                | Même parcours ; vérifier explicitement le contrôle des Tab Islands ou le repli annoncé. |
 
 Consigner date, OS, version exacte, scénario, attendu, observé et preuve utile. Un passage sur Chromium ne vaut pas validation des quatre navigateurs. L’absence d’API de regroupement est acceptable uniquement si le repli fonctionne et que la limitation est documentée.
 

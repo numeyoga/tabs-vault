@@ -1,7 +1,7 @@
 ---
-created_at: "2026-11-03"
-updated_at: "2026-11-03"
-application_version: "0.1.0"
+created_at: '2026-11-03'
+updated_at: '2026-11-03'
+application_version: '0.1.0'
 ---
 
 # Spécifications fonctionnelles
@@ -29,11 +29,11 @@ La première version couvre la capture, la recherche, les tags, les groupes, l�
 
 ## Concepts
 
-| Objet | Définition |
-| --- | --- |
-| Lien | URL unique dans la bibliothèque, titre modifiable, dates de création et modification, tags. |
-| Groupe | Ensemble nommé et ordonné de liens ; un lien peut appartenir à plusieurs groupes. |
-| Tag | Étiquette réutilisable ; un lien peut porter plusieurs tags. |
+| Objet             | Définition                                                                                              |
+| ----------------- | ------------------------------------------------------------------------------------------------------- |
+| Lien              | URL unique dans la bibliothèque, titre modifiable, dates de création et modification, tags.             |
+| Groupe            | Ensemble nommé et ordonné de liens ; un lien peut appartenir à plusieurs groupes.                       |
+| Tag               | Étiquette réutilisable ; un lien peut porter plusieurs tags.                                            |
 | Onglet sauvegardé | Seuls son URL et son titre sont conservés, sans historique, cookies, formulaire ni position de lecture. |
 
 ## Sauvegarde
@@ -72,7 +72,7 @@ Deux tags sont affichés dans la ligne ; au-delà, une pastille « +N » ouvre l
 
 **F-10 — Unité et lot.** Ouvrir un lien, la sélection ou un groupe. Un lien s’ouvre dans un nouvel onglet ; un lot utilise un groupe natif lorsque disponible. Le groupe est créé dans la fenêtre courante ; en l’absence de groupes natifs, le lot s’ouvre dans une nouvelle fenêtre. L’ordre est celui du groupe ou, pour une sélection, celui de la liste affichée. Au-delà de 20 liens, demander une confirmation indiquant le nombre d’onglets.
 
-Lorsque l’API de groupes est utilisable, créer un groupe et restaurer son nom pour un groupe sauvegardé ; une sélection libre reçoit un nom modifiable proposé. Les *Tab Islands* d’Opera ne sont pas présumés pilotables : le support réel doit être vérifié. Si le regroupement est indisponible, ouvrir le lot dans une nouvelle fenêtre et indiquer ce mode d’ouverture. Si le regroupement échoue après ouverture, conserver les onglets ouverts et expliquer l’échec, sans les ouvrir une deuxième fois.
+Lorsque l’API de groupes est utilisable, créer un groupe et restaurer son nom pour un groupe sauvegardé ; une sélection libre reçoit un nom modifiable proposé. Les _Tab Islands_ d’Opera ne sont pas présumés pilotables : le support réel doit être vérifié. Si le regroupement est indisponible, ouvrir le lot dans une nouvelle fenêtre et indiquer ce mode d’ouverture. Si le regroupement échoue après ouverture, conserver les onglets ouverts et expliquer l’échec, sans les ouvrir une deuxième fois.
 
 Les ouvertures réussies ne retirent jamais les liens de la bibliothèque. En cas d’échec partiel, afficher les succès et échecs ; une nouvelle tentative vise uniquement les échecs.
 

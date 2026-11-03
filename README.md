@@ -1,7 +1,7 @@
 ---
-created_at: "2026-11-03"
-updated_at: "2026-11-03"
-application_version: "0.1.0"
+created_at: '2026-11-03'
+updated_at: '2026-11-03'
+application_version: '0.1.0'
 ---
 
 # Tabs Vault
@@ -67,6 +67,8 @@ PLAYWRIGHT_CHROMIUM_EXECUTABLE=/usr/bin/chromium npm run test:e2e
 ```
 
 Les parcours suivent les identifiants BDD de la [stratégie de test](docs/strategie-tests.md). Les actions utilisateur sont modélisées par les Page Objects de `tests/e2e/pages/` ; aucun framework BDD n’est utilisé. Les tests utilisent uniquement des URLs fictives et des profils isolés.
+
+Pour les contrôles de qualité : `npm run check`. Le [guide qualité](docs/qualite-code.md) décrit le lint, le formatage, les rapports de couverture et la CI.
 
 ## Organisation
 

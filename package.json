@@ -4,7 +4,7 @@
   "private": true,
   "type": "module",
   "engines": {
-    "node": ">=22.12.0"
+    "node": "^24.15.0 || >=26.0.0"
   },
   "scripts": {
     "dev": "vite --host 127.0.0.1",
@@ -12,11 +12,30 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:e2e": "npm run build && playwright test",
-    "test:e2e:extension": "npm run build && playwright test --config playwright.extension.config.js"
+    "test:e2e:extension": "npm run build && playwright test --config playwright.extension.config.js",
+    "lint:js": "eslint . --max-warnings=0",
+    "lint:css": "stylelint \"src/**/*.css\" --max-warnings=0",
+    "lint": "npm run lint:js && npm run lint:css",
+    "lint:fix": "eslint . --fix && stylelint \"src/**/*.css\" --fix",
+    "format": "prettier . --write",
+    "format:check": "prettier . --check",
+    "test:coverage": "vitest run --coverage",
+    "check": "npm run lint && npm run format:check && npm run test:coverage && npm run build"
   },
   "devDependencies": {
+    "@eslint/js": "^10.0.1",
     "@playwright/test": "^1.64.1",
+    "@vitest/coverage-v8": "^5.1.0",
+    "eslint": "^10.14.0",
+    "eslint-plugin-playwright": "^2.12.2",
+    "globals": "^17.14.0",
+    "prettier": "^3.9.10",
+    "stylelint": "^18.0.0",
+    "stylelint-config-standard": "^41.0.0",
     "vite": "^8.3.5",
     "vitest": "^5.1.0"
+  },
+  "overrides": {
+    "minimatch": "^11.0.1"
   }
 }

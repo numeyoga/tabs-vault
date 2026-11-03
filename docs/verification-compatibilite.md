@@ -1,7 +1,7 @@
 ---
-created_at: "2026-11-03"
-updated_at: "2026-11-03"
-application_version: "0.1.0"
+created_at: '2026-11-03'
+updated_at: '2026-11-03'
+application_version: '0.1.0'
 ---
 
 # Vérification des spécifications et de la compatibilité
@@ -26,11 +26,11 @@ Contrôles documentaires : métadonnées, liens relatifs, ancres, identifiants B
 
 Pages consultées avec succès par HTTPS le 2026-11-03 :
 
-| Source | Constat | Limite |
-| --- | --- | --- |
-| [Chrome : tabGroups](https://developer.chrome.com/docs/extensions/reference/api/tabGroups) | API disponible depuis Chrome 89 ; permission `tabGroups` ; lecture et modification des groupes. Regroupement et lecture des membres relèvent de `tabs`. | Ne démontre pas le comportement des autres navigateurs Chromium. |
-| [Opera : API d’extensions](https://help.opera.com/en/extensions/apis/) | La page décrit les API communes avec Chrome et liste `Tabs`, mais ne liste pas `tabGroups`. | Page portant une date de modification de 2024 ; l’absence d’entrée ne prouve pas l’absence de l’API dans Opera actuel. |
-| [Opera : Tab Islands](https://www.opera.com/features/tab-islands) | Fonction de regroupement avec noms et couleurs, création automatique ou manuelle, renommage depuis l’interface. | La page ne décrit pas de contrat d’API d’extension pour créer, lire ou renommer ces îlots. |
+| Source                                                                                     | Constat                                                                                                                                                 | Limite                                                                                                                 |
+| ------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------- |
+| [Chrome : tabGroups](https://developer.chrome.com/docs/extensions/reference/api/tabGroups) | API disponible depuis Chrome 89 ; permission `tabGroups` ; lecture et modification des groupes. Regroupement et lecture des membres relèvent de `tabs`. | Ne démontre pas le comportement des autres navigateurs Chromium.                                                       |
+| [Opera : API d’extensions](https://help.opera.com/en/extensions/apis/)                     | La page décrit les API communes avec Chrome et liste `Tabs`, mais ne liste pas `tabGroups`.                                                             | Page portant une date de modification de 2024 ; l’absence d’entrée ne prouve pas l’absence de l’API dans Opera actuel. |
+| [Opera : Tab Islands](https://www.opera.com/features/tab-islands)                          | Fonction de regroupement avec noms et couleurs, création automatique ou manuelle, renommage depuis l’interface.                                         | La page ne décrit pas de contrat d’API d’extension pour créer, lire ou renommer ces îlots.                             |
 
 Conclusion documentaire : l’intégration aux groupes Chrome est documentée. Le contrôle des Tab Islands d’Opera par `chrome.tabGroups` reste non confirmé. Ne pas annoncer leur support natif sur cette seule base.
 

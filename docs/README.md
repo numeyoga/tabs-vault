@@ -1,7 +1,7 @@
 ---
-created_at: "2026-11-03"
-updated_at: "2026-11-03"
-application_version: "0.1.0"
+created_at: '2026-11-03'
+updated_at: '2026-11-03'
+application_version: '0.1.0'
 ---
 
 # Spécifications de Tabs Vault
@@ -27,3 +27,5 @@ Règles de corbeille confirmées : la réactivation restaure toute l’organisat
 Les règles de sécurité, contraintes de compatibilité et choix d’architecture sont documentés séparément des besoins confirmés. Le contrôle effectif des Tab Islands d’Opera reste à vérifier techniquement.
 
 - [Rapport de vérification](verification-compatibilite.md) : preuves documentaires, essai Chromium et limites de validation.
+
+- [Qualité du code](qualite-code.md) : commandes de contrôle, conventions, couverture et CI GitHub.

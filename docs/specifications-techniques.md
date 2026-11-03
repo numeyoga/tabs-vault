@@ -1,7 +1,7 @@
 ---
-created_at: "2026-11-03"
-updated_at: "2026-11-03"
-application_version: "0.1.0"
+created_at: '2026-11-03'
+updated_at: '2026-11-03'
+application_version: '0.1.0'
 ---
 
 # Spécifications techniques
@@ -31,25 +31,25 @@ Scripts disponibles : `dev` (Vite), `build` (production), `test` (Vitest), `test
 
 ## Composants
 
-| Composant proposé | Responsabilité |
-| --- | --- |
+| Composant proposé | Responsabilité                                                                                    |
+| ----------------- | ------------------------------------------------------------------------------------------------- |
 | `src/background/` | Événements action/menu, commandes, lecture des onglets, écritures sérialisées, ouverture par lot. |
-| `src/library/` | Page bibliothèque, formulaires, sélection, rendu DOM et états accessibles. |
-| `src/domain/` | Fonctions pures de validation, normalisation, recherche, déduplication et fusion. |
-| `src/storage/` | Lecture du document, validation, migrations et persistance. |
-| `src/browser/` | Adaptateur des API Chromium et détection des capacités. |
-| `tests/` | Tests unitaires, intégration et parcours réels. |
+| `src/library/`    | Page bibliothèque, formulaires, sélection, rendu DOM et états accessibles.                        |
+| `src/domain/`     | Fonctions pures de validation, normalisation, recherche, déduplication et fusion.                 |
+| `src/storage/`    | Lecture du document, validation, migrations et persistance.                                       |
+| `src/browser/`    | Adaptateur des API Chromium et détection des capacités.                                           |
+| `tests/`          | Tests unitaires, intégration et parcours réels.                                                   |
 
 Le service worker ne repose pas sur des variables mémoire pour une donnée durable. Ses listeners sont enregistrés au chargement. Les pages communiquent via `chrome.runtime.sendMessage` ; elles observent `chrome.storage.onChanged` pour rafraîchir une bibliothèque ouverte. Pas de content script, d’accès au DOM des sites ou de script injecté.
 
 ## Permissions et sécurité
 
-| Permission prévue | Usage |
-| --- | --- |
-| `storage` | Bibliothèque dans `chrome.storage.local`, sans `storage.sync`. |
-| `tabs` | Lire titres et URLs des onglets, notamment pour capturer une fenêtre entière. |
-| `tabGroups` | Lire titres/ordre des groupes et regrouper les onglets ouverts lorsque disponible. |
-| `contextMenus` | Actions secondaires depuis le bouton de l’extension. |
+| Permission prévue | Usage                                                                              |
+| ----------------- | ---------------------------------------------------------------------------------- |
+| `storage`         | Bibliothèque dans `chrome.storage.local`, sans `storage.sync`.                     |
+| `tabs`            | Lire titres et URLs des onglets, notamment pour capturer une fenêtre entière.      |
+| `tabGroups`       | Lire titres/ordre des groupes et regrouper les onglets ouverts lorsque disponible. |
+| `contextMenus`    | Actions secondaires depuis le bouton de l’extension.                               |
 
 `activeTab` seul ne suffit pas pour capturer les autres onglets. Aucune `host_permissions`, permission cookies, historique, réseau ou `unlimitedStorage` prévue. La présence de `tabGroups` dans chaque manifeste cible doit être vérifiée sur chaque navigateur ; si elle n’est pas acceptée, produire une variante de manifeste qui l’omet et active le repli fonctionnel. Le manifeste déclare `incognito: "not_allowed"` : navigation privée exclue.
 
