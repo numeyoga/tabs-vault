@@ -1,0 +1,14 @@
+{
+  "manifest_version": 3,
+  "name": "Tabs Vault",
+  "version": "0.1.0",
+  "description": "Sauvegardez et organisez vos onglets, uniquement dans votre navigateur.",
+  "permissions": ["storage", "tabs", "tabGroups", "contextMenus"],
+  "incognito": "not_allowed",
+  "action": { "default_title": "Sauvegarder cet onglet dans Tabs Vault" },
+  "background": { "service_worker": "background.js", "type": "module" },
+  "options_ui": { "page": "library.html", "open_in_tab": true },
+  "content_security_policy": {
+    "extension_pages": "script-src 'self'; object-src 'none'; connect-src 'none'"
+  }
+}
